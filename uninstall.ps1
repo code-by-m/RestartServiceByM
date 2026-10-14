@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$serviceName = "ServisRestart"
+$serviceName = "RestartService"
 
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = [Security.Principal.WindowsPrincipal]::new($identity)

@@ -8,8 +8,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$serviceName = "ServisRestart"
-$displayName = "Servis Restart"
+$serviceName = "RestartService"
+$displayName = "RestartService"
 $serviceDescription = "Yapilandirmada belirtilen Windows servislerini belirlenen araliklarla izler; durmalari halinde yeniden baslatir ve istege bagli olarak planli restart uygular."
 $installRoot = Join-Path $env:ProgramFiles "RestartServiceByM"
 $PackagePath = [System.IO.Path]::GetFullPath($PackagePath)
@@ -165,8 +165,10 @@ if (-not (Test-Path -LiteralPath $logsDirectory -PathType Container)) {
     New-Item -ItemType Directory -Path $logsDirectory -Force | Out-Null
 }
 $logsAcl = Get-Acl -LiteralPath $logsDirectory
+$localServiceAccount = [System.Security.Principal.NTAccount]::new('NT AUTHORITY\LOCAL SERVICE')
+$logsAcl.PurgeAccessRules($localServiceAccount)
 $logsRule = [System.Security.AccessControl.FileSystemAccessRule]::new(
-    'NT AUTHORITY\LOCAL SERVICE',
+    'NT AUTHORITY\SYSTEM',
     [System.Security.AccessControl.FileSystemRights]::Modify,
     [System.Security.AccessControl.InheritanceFlags]::ContainerInherit -bor
         [System.Security.AccessControl.InheritanceFlags]::ObjectInherit,
@@ -240,7 +242,7 @@ if ($null -ne $existingService) {
         "binPath=",
         "`"$executablePath`"",
         "obj=",
-        "NT AUTHORITY\LocalService"
+        "LocalSystem"
     )
 }
 else {
@@ -250,7 +252,7 @@ else {
         "binPath=",
         "`"$executablePath`"",
         "obj=",
-        "NT AUTHORITY\LocalService",
+        "LocalSystem",
         "start=",
         "auto",
         "DisplayName=",
@@ -278,4 +280,4 @@ $service.WaitForStatus(
     [System.ServiceProcess.ServiceControllerStatus]::Running,
     [TimeSpan]::FromSeconds(60))
 
-Write-Host "$displayName installed/updated from '$PackagePath' to '$installRoot' under LocalService."
+Write-Host "$displayName installed/updated from '$PackagePath' to '$installRoot' under LocalSystem."
